@@ -24,4 +24,4 @@ const deleteUser = asyncHandler(async (req, res) => {
     res.json({ success: true, message: 'Xoá người dùng thành công' });
 });
 
-module.exports = { getUsers, getUserById, updateUser, deleteUser };
+module.exports = { getUsers, deleteUser };
