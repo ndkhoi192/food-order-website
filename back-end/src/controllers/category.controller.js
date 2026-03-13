@@ -35,4 +35,4 @@ const deleteCategory = asyncHandler(async (req, res) => {
     res.json({ success: true, message: 'Xoá danh mục thành công' });
 });
 
-module.exports = { getCategories, getCategoryById, createCategory, updateCategory, deleteCategory };
+module.exports = { getCategories, createCategory, updateCategory, deleteCategory };
