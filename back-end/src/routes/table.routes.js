@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const {
     getTables,
-    getTableById,
+    getZones,
     getTableByQrToken,
     createTable,
     updateTable,
@@ -12,6 +12,7 @@ const { authenticate, authorize } = require('../middlewares/auth.middleware');
 
 // Quét QR thì sẽ kèm link dạng link fe + tables/:token
 router.get('/qr/:token', getTableByQrToken);
+router.get('/zones', getZones);
 router.get('/', getTables);
 
 // Staff/Admin

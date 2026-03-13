@@ -14,6 +14,12 @@ const getTables = asyncHandler(async (req, res) => {
     res.json({ success: true, data: tables });
 });
 
+// GET /api/tables/zones
+const getZones = asyncHandler(async (req, res) => {
+    const zones = await Table.distinct('zone');
+    res.json({ success: true, data: zones.filter(Boolean).sort() });
+});
+
 // GET /api/tables/qr/:token
 const getTableByQrToken = asyncHandler(async (req, res) => {
     const table = await Table.findOne({ qrToken: req.params.token, isActive: true });
@@ -26,7 +32,7 @@ const createTable = asyncHandler(async (req, res) => {
     const { name, zone, capacity, status, isActive } = req.body;
     if (!name) return res.status(400).json({ success: false, message: 'Tên bàn là bắt buộc' });
 
-    // Tự sinh qrToken
+    // sinh qrToken
     const qrToken = `TBL-${name.replace(/\s+/g, '')}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
     const table = await Table.create({ name, zone, capacity, status, isActive, qrToken });
@@ -58,4 +64,4 @@ const deleteTable = asyncHandler(async (req, res) => {
     res.json({ success: true, message: 'Xoá bàn thành công' });
 });
 
-module.exports = { getTables, getTableById, getTableByQrToken, createTable, updateTable, updateTableStatus, deleteTable };
+module.exports = { getTables, getZones, getTableByQrToken, createTable, updateTable, updateTableStatus, deleteTable };
