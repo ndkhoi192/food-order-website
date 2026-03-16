@@ -552,8 +552,8 @@ export default function StaffDashboard() {
                 </p>
                 {selectedTable.qrToken && (
                   <p className="text-[11px] text-[#E86A12] hover:underline mt-1 break-all">
-                    <a href={`${import.meta.env.VITE_WEB_LINK || ''}table/${selectedTable.qrToken}`} target="_blank" rel="noopener noreferrer">
-                      Link: {import.meta.env.VITE_WEB_LINK || ''}table/{selectedTable.qrToken}
+                    <a href={`${import.meta.env.VITE_WEB_LINK || (window.location.origin + '/')}table/${selectedTable.qrToken}`} target="_blank" rel="noopener noreferrer">
+                      Link: {import.meta.env.VITE_WEB_LINK || (window.location.origin + '/')}table/{selectedTable.qrToken}
                     </a>
                   </p>
                 )}
