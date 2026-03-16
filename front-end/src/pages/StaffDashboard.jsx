@@ -549,13 +549,20 @@ export default function StaffDashboard() {
           <div className="w-full max-w-sm bg-white h-full overflow-y-auto shadow-2xl flex flex-col">
             {/* Drawer header */}
             <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between">
-              <div>
+              <div className="flex-1 pr-4">
                 <h3 className="font-extrabold text-gray-800">
                   Bàn {selectedTable.name}
                 </h3>
                 <p className="text-xs text-gray-400">
                   {tableOrders.length} đơn hàng
                 </p>
+                {selectedTable.qrToken && (
+                  <p className="text-[11px] text-[#E86A12] hover:underline mt-1 break-all">
+                    <a href={`${import.meta.env.VITE_WEB_LINK || ''}tables/${selectedTable.qrToken}`} target="_blank" rel="noopener noreferrer">
+                      Link: {import.meta.env.VITE_WEB_LINK || ''}tables/{selectedTable.qrToken}
+                    </a>
+                  </p>
+                )}
               </div>
               <button
                 onClick={() => setSelectedTable(null)}
