@@ -447,7 +447,7 @@ export default function StaffDashboard() {
               <div className="space-y-3">
                 <div className="mb-5 grid grid-cols-3 gap-3">
                   <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col justify-center">
-                    <p className="text-xs text-gray-400 font-bold mb-1 uppercase tracking-wider">Tổng doanh thu</p>
+                    <p className="text-xs text-gray-400 font-bold mb-1 uppercase tracking-wider">Tổng doanh thu ngày</p>
                     <p className="text-xl font-extrabold text-[#E86A12]">{(dailyStats?.total || 0).toLocaleString("vi-VN")}đ</p>
                   </div>
                   <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100 flex flex-col justify-center">
@@ -647,7 +647,10 @@ export default function StaffDashboard() {
                               {order.items?.length || 0} món ·{" "}
                               {new Date(
                                 order.placedAt || order.createdAt,
-                              ).toLocaleTimeString("vi-VN", {
+                              ).toLocaleString("vi-VN", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
                                 hour: "2-digit",
                                 minute: "2-digit",
                               })}
@@ -805,7 +808,10 @@ export default function StaffDashboard() {
                       Đợt {oi + 1} ·{" "}
                       {new Date(
                         order.placedAt || order.createdAt,
-                      ).toLocaleTimeString("vi-VN", {
+                      ).toLocaleString("vi-VN", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
@@ -1029,7 +1035,10 @@ export default function StaffDashboard() {
                       <span>
                         {new Date(
                           selectedOrder.placedAt || selectedOrder.createdAt,
-                        ).toLocaleTimeString("vi-VN", {
+                        ).toLocaleString("vi-VN", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
                           hour: "2-digit",
                           minute: "2-digit",
                         })}
