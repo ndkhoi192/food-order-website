@@ -1,6 +1,7 @@
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { IMAGE_BASE_URL } from '../services/api';
 
 const FALLBACK = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop&q=60';
 
@@ -9,7 +10,7 @@ export default function ProductCard({ product }) {
     const { addItem } = useCart();
 
     const imgSrc = product.imageUrl
-        ? (product.imageUrl.startsWith('http') ? product.imageUrl : `http://localhost:3000${product.imageUrl}`)
+        ? (product.imageUrl.startsWith('http') ? product.imageUrl : `${IMAGE_BASE_URL}${product.imageUrl}`)
         : FALLBACK;
 
     const handleAdd = (e) => {

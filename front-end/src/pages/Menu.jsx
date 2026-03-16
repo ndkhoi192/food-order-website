@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, X, Plus, Minus, ShoppingBag, Star, Clock, Flame } from 'lucide-react';
 import { useSearchParams, Navigate, useNavigate } from 'react-router-dom';
-import { productApi, categoryApi } from '../services/api';
+import { productApi, categoryApi, IMAGE_BASE_URL } from '../services/api';
 import { useTable } from '../context/TableContext';
 import { useCart } from '../context/CartContext';
 
@@ -97,7 +97,7 @@ export default function Menu() {
 
     const getImgSrc = (product) => {
         if (product.imageUrl) {
-            return product.imageUrl.startsWith('http') ? product.imageUrl : `http://localhost:3000${product.imageUrl}`;
+            return product.imageUrl.startsWith('http') ? product.imageUrl : `${IMAGE_BASE_URL}${product.imageUrl}`;
         }
         return FALLBACK;
     };
@@ -166,7 +166,7 @@ export default function Menu() {
                         >
                             <div className="w-16 h-16 rounded-full bg-[#fff1e7] flex items-center justify-center overflow-hidden">
                                 {cat.imageUrl ? (
-                                    <img src={cat.imageUrl.startsWith('http') ? cat.imageUrl : `http://localhost:3000${cat.imageUrl}`} alt={cat.name} className="w-full h-full object-cover" />
+                                    <img src={cat.imageUrl.startsWith('http') ? cat.imageUrl : `${IMAGE_BASE_URL}${cat.imageUrl}`} alt={cat.name} className="w-full h-full object-cover" />
                                 ) : (
                                     <span className="text-2xl">🍽️</span>
                                 )}

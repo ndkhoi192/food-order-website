@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { productApi, categoryApi } from '../../services/api';
+import { productApi, categoryApi, IMAGE_BASE_URL } from '../../services/api';
 import { Edit2, Trash2, Plus, X, Loader2, Image as ImageIcon, ChevronDown, ChevronUp } from 'lucide-react';
 
 const EMPTY_OPTION_ITEM = { code: '', label: '', priceDelta: 0, isDefault: false, isActive: true };
@@ -173,7 +173,7 @@ export default function ProductManager() {
                     <tbody>
                         {products.map(prod => {
                             const imgSrc = prod.imageUrl
-                                ? (prod.imageUrl.startsWith('http') ? prod.imageUrl : `http://localhost:3000${prod.imageUrl}`)
+                                ? (prod.imageUrl.startsWith('http') ? prod.imageUrl : `${IMAGE_BASE_URL}${prod.imageUrl}`)
                                 : FALLBACK_IMG;
                             return (
                                 <tr key={prod._id} className="border-b border-gray-50 hover:bg-gray-50/50">

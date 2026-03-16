@@ -3,7 +3,7 @@ import { Minus, Plus, Trash2, ShoppingBag, ChevronLeft, CheckCircle2, UtensilsCr
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useTable } from '../context/TableContext';
-import { orderApi } from '../services/api';
+import { orderApi, IMAGE_BASE_URL } from '../services/api';
 
 const FALLBACK = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&auto=format&fit=crop&q=60';
 
@@ -135,7 +135,7 @@ export default function Cart() {
             <div className="space-y-3">
                 {items.map(item => {
                     const imgSrc = item.imageUrl
-                        ? (item.imageUrl.startsWith('http') ? item.imageUrl : `http://localhost:3000${item.imageUrl}`)
+                        ? (item.imageUrl.startsWith('http') ? item.imageUrl : `${IMAGE_BASE_URL}${item.imageUrl}`)
                         : FALLBACK;
                     return (
                         <div key={item._key} className="flex gap-3 p-3 bg-white rounded-2xl border border-[#f0e6dd] shadow-sm hover:shadow-md transition-shadow">

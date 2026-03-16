@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Minus, Plus, ShoppingBag, Star, Clock, Flame, Heart } from 'lucide-react';
-import { productApi } from '../services/api';
+import { productApi, IMAGE_BASE_URL } from '../services/api';
 import { useCart } from '../context/CartContext';
 
 const FALLBACK = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80';
@@ -55,7 +55,7 @@ export default function ProductDetail() {
     }
 
     const imgSrc = product.imageUrl
-        ? (product.imageUrl.startsWith('http') ? product.imageUrl : `http://localhost:3000${product.imageUrl}`)
+        ? (product.imageUrl.startsWith('http') ? product.imageUrl : `${IMAGE_BASE_URL}${product.imageUrl}`)
         : FALLBACK;
 
     const calcTotal = () => {
