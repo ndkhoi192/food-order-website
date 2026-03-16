@@ -101,11 +101,10 @@ function TabBtn({ active, onClick, icon: Icon, label }) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-extrabold transition-all ${
-        active
-          ? "bg-[#E86A12] text-white shadow-lg shadow-[#E86A12]/20"
-          : "text-[#121212]/50 hover:text-[#121212] hover:bg-[#fff1e7]"
-      }`}
+      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-extrabold transition-all ${active
+        ? "bg-[#E86A12] text-white shadow-lg shadow-[#E86A12]/20"
+        : "text-[#121212]/50 hover:text-[#121212] hover:bg-[#fff1e7]"
+        }`}
     >
       <Icon size={16} />
       {label}
@@ -263,12 +262,12 @@ export default function StaffDashboard() {
 
   const tableOrders = selectedTable
     ? orders.filter((o) => {
-        const tid = o.tableId?._id || o.tableId;
-        return (
-          String(tid) === String(selectedTable._id) &&
-          o.paymentStatus !== "paid"
-        );
-      })
+      const tid = o.tableId?._id || o.tableId;
+      return (
+        String(tid) === String(selectedTable._id) &&
+        o.paymentStatus !== "paid"
+      );
+    })
     : [];
 
   const stats = {
@@ -431,11 +430,6 @@ export default function StaffDashboard() {
                                   <Users size={11} /> {table.capacity} người
                                 </p>
                               )}
-                              {tblOrders.length > 0 && (
-                                <p className="flex items-center gap-1 text-xs text-[#E86A12] font-semibold mt-1">
-                                  <ClipboardList size={11} /> {tblOrders.length} đơn
-                                </p>
-                              )}
                             </button>
                           );
                         })}
@@ -558,8 +552,8 @@ export default function StaffDashboard() {
                 </p>
                 {selectedTable.qrToken && (
                   <p className="text-[11px] text-[#E86A12] hover:underline mt-1 break-all">
-                    <a href={`${import.meta.env.VITE_WEB_LINK || ''}tables/${selectedTable.qrToken}`} target="_blank" rel="noopener noreferrer">
-                      Link: {import.meta.env.VITE_WEB_LINK || ''}tables/{selectedTable.qrToken}
+                    <a href={`${import.meta.env.VITE_WEB_LINK || ''}table/${selectedTable.qrToken}`} target="_blank" rel="noopener noreferrer">
+                      Link: {import.meta.env.VITE_WEB_LINK || ''}table/{selectedTable.qrToken}
                     </a>
                   </p>
                 )}
@@ -585,11 +579,10 @@ export default function StaffDashboard() {
                       onClick={() =>
                         handleUpdateTableStatus(selectedTable._id, key)
                       }
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold border-2 transition-all ${
-                        selectedTable.status === key
-                          ? `${cfg.bg} ${cfg.border} ${cfg.text}`
-                          : "bg-gray-50 border-gray-200 text-gray-400 hover:border-gray-300"
-                      }`}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold border-2 transition-all ${selectedTable.status === key
+                        ? `${cfg.bg} ${cfg.border} ${cfg.text}`
+                        : "bg-gray-50 border-gray-200 text-gray-400 hover:border-gray-300"
+                        }`}
                     >
                       <span
                         className={`w-2 h-2 rounded-full ${selectedTable.status === key ? cfg.dot : "bg-gray-300"}`}
@@ -846,22 +839,20 @@ export default function StaffDashboard() {
             <div className="grid grid-cols-2 gap-3 mb-6">
               <button
                 onClick={() => setPayMethod("cash")}
-                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 font-bold text-sm transition-all ${
-                  payMethod === "cash"
-                    ? "border-[#E86A12] bg-[#fff1e7] text-[#E86A12]"
-                    : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300"
-                }`}
+                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 font-bold text-sm transition-all ${payMethod === "cash"
+                  ? "border-[#E86A12] bg-[#fff1e7] text-[#E86A12]"
+                  : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300"
+                  }`}
               >
                 <Banknote size={24} />
                 Tiền mặt
               </button>
               <button
                 onClick={() => setPayMethod("bank_transfer")}
-                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 font-bold text-sm transition-all ${
-                  payMethod === "bank_transfer"
-                    ? "border-[#E86A12] bg-[#fff1e7] text-[#E86A12]"
-                    : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300"
-                }`}
+                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 font-bold text-sm transition-all ${payMethod === "bank_transfer"
+                  ? "border-[#E86A12] bg-[#fff1e7] text-[#E86A12]"
+                  : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300"
+                  }`}
               >
                 <CreditCard size={24} />
                 Chuyển khoản

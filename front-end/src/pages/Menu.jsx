@@ -21,14 +21,19 @@ export default function Menu() {
     // Product popup state
     const [popupProduct, setPopupProduct] = useState(null);
     const [popupQty, setPopupQty] = useState(1);
-    const [popupOptions, setPopupOptions] = useState({});
+    const [popupOptions, setPopupOptions] = useState({}); // { groupType: [itemCode, itemCode] }
     const [popupAdded, setPopupAdded] = useState(false);
 
     const openProductPopup = (product) => {
         const defaults = {};
         (product.optionGroups || []).forEach(g => {
-            const def = g.items.find(i => i.isDefault);
-            if (def) defaults[g.type] = def.code;
+            const defs = g.items.filter(i => i.isDefault).map(i => i.code);
+            if (defs.length > 0) {
+                // Limit defaults to max allowed
+                defaults[g.type] = defs.slice(0, g.max || 1);
+            } else {
+                defaults[g.type] = [];
+            }
         });
         setPopupOptions(defaults);
         setPopupQty(1);
@@ -42,19 +47,37 @@ export default function Menu() {
         if (!popupProduct) return 0;
         let extra = 0;
         (popupProduct.optionGroups || []).forEach(g => {
-            const selected = g.items.find(i => i.code === popupOptions[g.type]);
-            if (selected) extra += selected.priceDelta;
+            const selectedCodes = popupOptions[g.type] || [];
+            const selectedItems = g.items.filter(i => selectedCodes.includes(i.code));
+            selectedItems.forEach(item => {
+                extra += item.priceDelta;
+            });
         });
         return (popupProduct.basePrice + extra) * popupQty;
     };
 
     const handlePopupAddToCart = () => {
         if (!popupProduct) return;
-        const chosenOptions = Object.entries(popupOptions).map(([type, code]) => {
+        const chosenOptions = [];
+
+        // Flatten multiple selections into cart items
+        Object.entries(popupOptions).forEach(([type, codes]) => {
             const group = popupProduct.optionGroups.find(g => g.type === type);
-            const item = group?.items.find(i => i.code === code);
-            return { type, groupName: group?.name, label: item?.label, priceDelta: item?.priceDelta || 0 };
+            if (group) {
+                codes.forEach(code => {
+                    const item = group.items.find(i => i.code === code);
+                    if (item) {
+                        chosenOptions.push({
+                            type,
+                            groupName: group.name,
+                            label: item.label,
+                            priceDelta: item.priceDelta || 0
+                        });
+                    }
+                });
+            }
         });
+
         addItem(popupProduct, popupQty, chosenOptions);
         setPopupAdded(true);
         setTimeout(() => {
@@ -139,18 +162,16 @@ export default function Menu() {
                 <div className="flex gap-2.5 px-6 mt-5 overflow-x-auto scrollbar-hide">
                     <button
                         onClick={() => handleCatSelect('all')}
-                        className={`flex flex-col items-center gap-2.5 p-2 rounded-xl shrink-0 transition-all ${
-                            selectedCat === 'all'
-                                ? 'bg-[#fcf8f5] border border-[#E86A12] shadow-[0px_4px_14px_0px_rgba(0,0,0,0.12)]'
-                                : 'border border-transparent'
-                        }`}
+                        className={`flex flex-col items-center gap-2.5 p-2 rounded-xl shrink-0 transition-all ${selectedCat === 'all'
+                            ? 'bg-[#fcf8f5] border border-[#E86A12] shadow-[0px_4px_14px_0px_rgba(0,0,0,0.12)]'
+                            : 'border border-transparent'
+                            }`}
                     >
                         <div className="w-16 h-16 rounded-full bg-[#fff1e7] flex items-center justify-center text-2xl">
                             🍽️
                         </div>
-                        <span className={`text-[14px] tracking-[0.25px] text-[#121212] leading-[1.2] ${
-                            selectedCat === 'all' ? 'font-extrabold' : 'font-bold'
-                        }`}>
+                        <span className={`text-[14px] tracking-[0.25px] text-[#121212] leading-[1.2] ${selectedCat === 'all' ? 'font-extrabold' : 'font-bold'
+                            }`}>
                             Tất cả
                         </span>
                     </button>
@@ -158,11 +179,10 @@ export default function Menu() {
                         <button
                             key={cat._id}
                             onClick={() => handleCatSelect(cat._id)}
-                            className={`flex flex-col items-center gap-2.5 p-2 rounded-xl shrink-0 transition-all ${
-                                selectedCat === cat._id
-                                    ? 'bg-[#fcf8f5] border border-[#E86A12] shadow-[0px_4px_14px_0px_rgba(0,0,0,0.12)]'
-                                    : 'border border-transparent'
-                            }`}
+                            className={`flex flex-col items-center gap-2.5 p-2 rounded-xl shrink-0 transition-all ${selectedCat === cat._id
+                                ? 'bg-[#fcf8f5] border border-[#E86A12] shadow-[0px_4px_14px_0px_rgba(0,0,0,0.12)]'
+                                : 'border border-transparent'
+                                }`}
                         >
                             <div className="w-16 h-16 rounded-full bg-[#fff1e7] flex items-center justify-center overflow-hidden">
                                 {cat.imageUrl ? (
@@ -171,9 +191,8 @@ export default function Menu() {
                                     <span className="text-2xl">🍽️</span>
                                 )}
                             </div>
-                            <span className={`text-[14px] tracking-[0.25px] text-[#121212] leading-[1.2] ${
-                                selectedCat === cat._id ? 'font-extrabold' : 'font-bold'
-                            }`}>
+                            <span className={`text-[14px] tracking-[0.25px] text-[#121212] leading-[1.2] ${selectedCat === cat._id ? 'font-extrabold' : 'font-bold'
+                                }`}>
                                 {cat.name}
                             </span>
                         </button>
@@ -281,16 +300,6 @@ export default function Menu() {
                                 className="w-full h-full object-cover"
                                 onError={e => { e.target.src = FALLBACK; }}
                             />
-                            <div className="absolute top-4 left-4 flex gap-2">
-                                <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm px-2.5 py-1.5 rounded-full shadow-md">
-                                    <Star size={13} className="text-yellow-400 fill-yellow-400" />
-                                    <span className="text-xs font-extrabold text-[#121212]">4.8</span>
-                                </div>
-                                <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm px-2.5 py-1.5 rounded-full shadow-md">
-                                    <Clock size={13} className="text-[#E86A12]" />
-                                    <span className="text-xs font-bold text-[#121212]">15–20'</span>
-                                </div>
-                            </div>
                         </div>
 
                         {/* Content */}
@@ -325,24 +334,49 @@ export default function Menu() {
                                         )}
                                     </div>
                                     <div className="flex flex-wrap gap-2">
-                                        {group.items.filter(i => i.isActive !== false).map(item => (
-                                            <button
-                                                key={item.code}
-                                                onClick={() => setPopupOptions(prev => ({ ...prev, [group.type]: item.code }))}
-                                                className={`px-3 py-2 rounded-xl text-sm font-bold border-2 transition-all ${
-                                                    popupOptions[group.type] === item.code
+                                        {group.items.filter(i => i.isActive !== false).map(item => {
+                                            const isSelected = (popupOptions[group.type] || []).includes(item.code);
+                                            return (
+                                                <button
+                                                    key={item.code}
+                                                    onClick={() => setPopupOptions(prev => {
+                                                        const current = prev[group.type] || [];
+                                                        const max = group.max || 1;
+
+                                                        if (isSelected) {
+                                                            // Always allow unselecting if max > 1, or if it's not required
+                                                            if (max > 1 || !group.required) {
+                                                                return { ...prev, [group.type]: current.filter(c => c !== item.code) };
+                                                            }
+                                                            return prev; // Cannot unselect single required item by clicking it again
+                                                        }
+
+                                                        // Selection logic
+                                                        if (max === 1) {
+                                                            return { ...prev, [group.type]: [item.code] };
+                                                        } else {
+                                                            if (current.length < max) {
+                                                                return { ...prev, [group.type]: [...current, item.code] };
+                                                            } else {
+                                                                // If at max, remove the oldest and add the new one
+                                                                return { ...prev, [group.type]: [...current.slice(1), item.code] };
+                                                            }
+                                                        }
+                                                    })}
+                                                    className={`px-3 py-2 rounded-xl text-sm font-bold border-2 transition-all ${isSelected
                                                         ? 'border-[#E86A12] bg-[#fff1e7] text-[#E86A12]'
                                                         : 'border-[#f0e6dd] bg-white text-[#121212]/60 hover:border-[#E86A12]/30'
-                                                }`}
-                                            >
-                                                {item.label}
-                                                {item.priceDelta !== 0 && (
-                                                    <span className="ml-1 text-xs opacity-70">
-                                                        {item.priceDelta > 0 ? '+' : ''}{Number(item.priceDelta).toLocaleString('vi-VN')}đ
-                                                    </span>
-                                                )}
-                                            </button>
-                                        ))}
+                                                        }`}
+                                                >
+                                                    {item.label}
+                                                    {item.priceDelta !== 0 && (
+                                                        <span className="ml-1 text-xs opacity-70">
+                                                            {item.priceDelta > 0 ? '+' : ''}{Number(item.priceDelta).toLocaleString('vi-VN')}đ
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             ))}
@@ -367,11 +401,10 @@ export default function Menu() {
                                 <button
                                     onClick={handlePopupAddToCart}
                                     disabled={!popupProduct.isActive}
-                                    className={`flex-1 py-3.5 rounded-2xl font-extrabold text-white flex items-center justify-center gap-2 shadow-lg transition-all active:scale-95 ${
-                                        popupAdded
-                                            ? 'bg-green-500 shadow-green-200'
-                                            : 'bg-[#E86A12] hover:bg-[#d45e0f] shadow-[#E86A12]/20'
-                                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                                    className={`flex-1 py-3.5 rounded-2xl font-extrabold text-white flex items-center justify-center gap-2 shadow-lg transition-all active:scale-95 ${popupAdded
+                                        ? 'bg-green-500 shadow-green-200'
+                                        : 'bg-[#E86A12] hover:bg-[#d45e0f] shadow-[#E86A12]/20'
+                                        } disabled:opacity-50 disabled:cursor-not-allowed`}
                                 >
                                     <ShoppingBag size={18} />
                                     {popupAdded ? '✓ Đã thêm!' : `Thêm — ${Number(calcPopupTotal()).toLocaleString('vi-VN')}đ`}
@@ -384,10 +417,10 @@ export default function Menu() {
 
             {/* ===== FLOATING CART BAR ===== */}
             {totalItems > 0 && !popupProduct && (
-                <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden p-4 bg-white/95 backdrop-blur-md border-t border-[#f0e6dd] shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
+                <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-white/95 backdrop-blur-md border-t border-[#f0e6dd] shadow-[0_-4px_24px_rgba(0,0,0,0.08)] flex justify-center">
                     <button
                         onClick={() => navigate('/cart')}
-                        className="w-full bg-[#E86A12] hover:bg-[#d45e0f] text-white py-4 rounded-2xl font-extrabold text-base flex items-center justify-center gap-3 shadow-lg shadow-[#E86A12]/20 transition-all active:scale-95"
+                        className="w-full max-w-lg bg-[#E86A12] hover:bg-[#d45e0f] text-white py-4 rounded-2xl font-extrabold text-base flex items-center justify-center gap-3 shadow-lg shadow-[#E86A12]/20 transition-all active:scale-95"
                     >
                         <ShoppingBag size={20} />
                         <span>Đi tới giỏ hàng</span>

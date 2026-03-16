@@ -14,7 +14,7 @@ export default function ProductDetail() {
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
-    const [selectedOptions, setSelectedOptions] = useState({});
+    const [selectedOptions, setSelectedOptions] = useState({}); // { groupType: [itemCode1, itemCode2] }
     const [liked, setLiked] = useState(false);
     const [added, setAdded] = useState(false);
 
@@ -22,11 +22,15 @@ export default function ProductDetail() {
         productApi.getById(id)
             .then(res => {
                 setProduct(res.data);
-                // set default options
+                // set default options based on max allowed
                 const defaults = {};
                 (res.data.optionGroups || []).forEach(g => {
-                    const def = g.items.find(i => i.isDefault);
-                    if (def) defaults[g.type] = def.code;
+                    const defs = g.items.filter(i => i.isDefault).map(i => i.code);
+                    if (defs.length > 0) {
+                        defaults[g.type] = defs.slice(0, g.max || 1);
+                    } else {
+                        defaults[g.type] = [];
+                    }
                 });
                 setSelectedOptions(defaults);
             })
@@ -61,18 +65,36 @@ export default function ProductDetail() {
     const calcTotal = () => {
         let extra = 0;
         (product.optionGroups || []).forEach(g => {
-            const selected = g.items.find(i => i.code === selectedOptions[g.type]);
-            if (selected) extra += selected.priceDelta;
+            const selectedCodes = selectedOptions[g.type] || [];
+            const selectedItems = g.items.filter(i => selectedCodes.includes(i.code));
+            selectedItems.forEach(item => {
+                extra += item.priceDelta;
+            });
         });
         return (product.basePrice + extra) * quantity;
     };
 
     const handleAddToCart = () => {
-        const chosenOptions = Object.entries(selectedOptions).map(([type, code]) => {
+        const chosenOptions = [];
+
+        // Flatten multiple selections into cart items
+        Object.entries(selectedOptions).forEach(([type, codes]) => {
             const group = product.optionGroups.find(g => g.type === type);
-            const item = group?.items.find(i => i.code === code);
-            return { type, groupName: group?.name, label: item?.label, priceDelta: item?.priceDelta || 0 };
+            if (group) {
+                codes.forEach(code => {
+                    const item = group.items.find(i => i.code === code);
+                    if (item) {
+                        chosenOptions.push({
+                            type,
+                            groupName: group.name,
+                            label: item.label,
+                            priceDelta: item.priceDelta || 0
+                        });
+                    }
+                });
+            }
         });
+
         addItem(product, quantity, chosenOptions);
         setAdded(true);
         setTimeout(() => setAdded(false), 2000);
@@ -103,17 +125,6 @@ export default function ProductDetail() {
                 {/* Image */}
                 <div className="relative rounded-3xl overflow-hidden shadow-xl aspect-square md:aspect-video bg-[#fff1e7]">
                     <img src={imgSrc} alt={product.name} className="w-full h-full object-cover" onError={e => { e.target.src = FALLBACK; }} />
-                    <div className="absolute top-4 left-4 flex gap-2">
-                        <div className="flex items-center gap-1 bg-white/95 backdrop-blur-sm px-2.5 py-1.5 rounded-full shadow-md">
-                            <Star size={14} className="text-yellow-400 fill-yellow-400" />
-                            <span className="text-sm font-extrabold text-[#121212]">4.8</span>
-                            <span className="text-xs text-[#121212]/40">(124)</span>
-                        </div>
-                    </div>
-                    <div className="absolute bottom-4 left-4 flex items-center gap-1 bg-white/95 backdrop-blur-sm px-2.5 py-1.5 rounded-full shadow-md">
-                        <Clock size={14} className="text-[#E86A12]" />
-                        <span className="text-sm font-bold text-[#121212]">15–20 phút</span>
-                    </div>
                 </div>
 
                 {/* Details */}
@@ -152,23 +163,49 @@ export default function ProductDetail() {
                                 {group.required && <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">Bắt buộc</span>}
                             </div>
                             <div className="flex flex-wrap gap-2">
-                                {group.items.filter(i => i.isActive).map(item => (
-                                    <button
-                                        key={item.code}
-                                        onClick={() => setSelectedOptions(prev => ({ ...prev, [group.type]: item.code }))}
-                                        className={`px-3 py-2 rounded-xl text-sm font-bold border-2 transition-all ${selectedOptions[group.type] === item.code
-                                            ? 'border-[#E86A12] bg-[#fff1e7] text-[#E86A12]'
-                                            : 'border-[#f0e6dd] bg-white text-[#121212]/60 hover:border-[#E86A12]/30'
-                                            }`}
-                                    >
-                                        {item.label}
-                                        {item.priceDelta !== 0 && (
-                                            <span className="ml-1 text-xs opacity-70">
-                                                {item.priceDelta > 0 ? '+' : ''}{Number(item.priceDelta).toLocaleString('vi-VN')}đ
-                                            </span>
-                                        )}
-                                    </button>
-                                ))}
+                                {group.items.filter(i => i.isActive).map(item => {
+                                    const isSelected = (selectedOptions[group.type] || []).includes(item.code);
+                                    return (
+                                        <button
+                                            key={item.code}
+                                            onClick={() => setSelectedOptions(prev => {
+                                                const current = prev[group.type] || [];
+                                                const max = group.max || 1;
+
+                                                if (isSelected) {
+                                                    // Always allow unselecting if max > 1, or if it's not required
+                                                    if (max > 1 || !group.required) {
+                                                        return { ...prev, [group.type]: current.filter(c => c !== item.code) };
+                                                    }
+                                                    return prev; // Cannot unselect single required item by clicking it again
+                                                }
+
+                                                // Selection logic
+                                                if (max === 1) {
+                                                    return { ...prev, [group.type]: [item.code] };
+                                                } else {
+                                                    if (current.length < max) {
+                                                        return { ...prev, [group.type]: [...current, item.code] };
+                                                    } else {
+                                                        // If at max, remove the oldest and add the new one
+                                                        return { ...prev, [group.type]: [...current.slice(1), item.code] };
+                                                    }
+                                                }
+                                            })}
+                                            className={`px-3 py-2 rounded-xl text-sm font-bold border-2 transition-all ${isSelected
+                                                    ? 'border-[#E86A12] bg-[#fff1e7] text-[#E86A12]'
+                                                    : 'border-[#f0e6dd] bg-white text-[#121212]/60 hover:border-[#E86A12]/30'
+                                                }`}
+                                        >
+                                            {item.label}
+                                            {item.priceDelta !== 0 && (
+                                                <span className="ml-1 text-xs opacity-70">
+                                                    {item.priceDelta > 0 ? '+' : ''}{Number(item.priceDelta).toLocaleString('vi-VN')}đ
+                                                </span>
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     ))}
