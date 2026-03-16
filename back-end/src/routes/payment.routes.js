@@ -6,10 +6,13 @@ const {
     createPaymentByTable,
     updatePaymentStatus,
     getRevenueSummary,
+    getDailyStats,
 } = require('../controllers/payment.controller');
 const { authenticate, authorize } = require('../middlewares/auth.middleware');
 
 router.use(authenticate);
+
+router.get('/daily-stats', authorize('admin', 'staff'), getDailyStats);
 
 // router.get('/summary', authorize('admin'), getRevenueSummary);
 router.get('/', authorize('admin', 'staff'), getPayments);

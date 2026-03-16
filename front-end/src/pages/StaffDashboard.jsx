@@ -118,6 +118,7 @@ export default function StaffDashboard() {
   const [tab, setTab] = useState("tables");
   const [tables, setTables] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [dailyStats, setDailyStats] = useState({ total: 0, bank: 0, cash: 0 });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedTable, setSelectedTable] = useState(null);
@@ -146,12 +147,14 @@ export default function StaffDashboard() {
     if (!silent) setLoading(true);
     else setRefreshing(true);
     try {
-      const [tabRes, ordRes] = await Promise.all([
+      const [tabRes, ordRes, statsRes] = await Promise.all([
         tableApi.getAll(),
         orderApi.getAll(),
+        paymentApi.getDailyStats().catch(() => ({ data: { total: 0, bank: 0, cash: 0 } })),
       ]);
       setTables(tabRes.data || []);
       setOrders(ordRes.data || []);
+      setDailyStats(statsRes.data || { total: 0, bank: 0, cash: 0 });
     } catch (e) {
       console.error(e);
     } finally {
@@ -442,6 +445,21 @@ export default function StaffDashboard() {
             {/* ORDERS TAB */}
             {tab === "orders" && (
               <div className="space-y-3">
+                <div className="mb-5 grid grid-cols-3 gap-3">
+                  <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex flex-col justify-center">
+                    <p className="text-xs text-gray-400 font-bold mb-1 uppercase tracking-wider">Tổng doanh thu</p>
+                    <p className="text-xl font-extrabold text-[#E86A12]">{(dailyStats?.total || 0).toLocaleString("vi-VN")}đ</p>
+                  </div>
+                  <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100 flex flex-col justify-center">
+                    <p className="text-xs text-emerald-600/70 font-bold mb-1 uppercase tracking-wider">Tiền mặt</p>
+                    <p className="text-xl font-extrabold text-emerald-600">{(dailyStats?.cash || 0).toLocaleString("vi-VN")}đ</p>
+                  </div>
+                  <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100 flex flex-col justify-center">
+                    <p className="text-xs text-blue-600/70 font-bold mb-1 uppercase tracking-wider">Chuyển khoản</p>
+                    <p className="text-xl font-extrabold text-blue-600">{(dailyStats?.bank || 0).toLocaleString("vi-VN")}đ</p>
+                  </div>
+                </div>
+
                 <h2 className="font-extrabold text-gray-800">
                   Tất cả đơn hàng
                 </h2>

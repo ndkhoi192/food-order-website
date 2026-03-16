@@ -180,4 +180,41 @@ const getRevenueSummary = asyncHandler(async (req, res) => {
     });
 });
 
-module.exports = { getPayments, getPaymentById, createPayment, createPaymentByTable, updatePaymentStatus, getRevenueSummary };
+// GET /api/payments/daily-stats — thống kê doanh thu trong ngày hiện tại
+const getDailyStats = asyncHandler(async (req, res) => {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+
+    // Tính những payment đã thanh toán thành công (đơn đã done)
+    const matchStage = {
+        status: 'success',
+        createdAt: { $gte: start, $lte: end }
+    };
+
+    const byMethod = await Payment.aggregate([
+        { $match: matchStage },
+        { $group: { _id: '$method', total: { $sum: '$amount' } } }
+    ]);
+
+    let bank = 0;
+    let cash = 0;
+
+    byMethod.forEach(m => {
+        if (m._id === 'cash') cash = m.total;
+        if (m._id === 'bank_transfer') bank = m.total;
+    });
+
+    res.json({
+        success: true,
+        data: {
+            total: bank + cash,
+            bank,
+            cash
+        }
+    });
+});
+
+module.exports = { getPayments, getPaymentById, createPayment, createPaymentByTable, updatePaymentStatus, getRevenueSummary, getDailyStats };

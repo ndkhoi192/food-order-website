@@ -82,6 +82,7 @@ export const paymentApi = {
     create: (body) => request('/payments', { method: 'POST', body: JSON.stringify(body) }),
     createByTable: (body) => request('/payments/by-table', { method: 'POST', body: JSON.stringify(body) }),
     getAll: () => request('/payments'),
+    getDailyStats: () => request('/payments/daily-stats'),
 };
 
 // Tables
