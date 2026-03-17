@@ -32,14 +32,6 @@ const getOrders = asyncHandler(async (req, res) => {
     res.json({ success: true, data: orders, total, page: Number(page), limit: Number(limit) });
 });
 
-// GET /api/orders/:id
-const getOrderById = asyncHandler(async (req, res) => {
-    const order = await Order.findById(req.params.id)
-        .populate('tableId', 'name zone')
-        .populate('createdBy', 'name email');
-    if (!order) return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
-    res.json({ success: true, data: order });
-});
 
 // GET /api/orders/table/:tableId  — lấy tất cả đơn active (chưa thanh toán) theo bàn
 const getActiveOrderByTable = asyncHandler(async (req, res) => {
@@ -193,7 +185,6 @@ const deleteOrder = asyncHandler(async (req, res) => {
 
 module.exports = {
     getOrders,
-    getOrderById,
     getActiveOrderByTable,
     createOrder,
     updateOrderStatus,

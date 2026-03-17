@@ -26,14 +26,6 @@ const getPayments = asyncHandler(async (req, res) => {
     res.json({ success: true, data: payments, total, page: Number(page), limit: Number(limit) });
 });
 
-// GET /api/payments/:id
-const getPaymentById = asyncHandler(async (req, res) => {
-    const payment = await Payment.findById(req.params.id)
-        .populate('orderId', 'code tableNameSnapshot pricing')
-        .populate('cashierId', 'name email');
-    if (!payment) return res.status(404).json({ success: false, message: 'Không tìm thấy thanh toán' });
-    res.json({ success: true, data: payment });
-});
 
 // POST /api/payments  — tạo thanh toán cho đơn hàng
 const createPayment = asyncHandler(async (req, res) => {
@@ -124,61 +116,7 @@ const createPaymentByTable = asyncHandler(async (req, res) => {
     res.status(201).json({ success: true, message: 'Thanh toán toàn bàn thành công', data: payment });
 });
 
-// PATCH /api/payments/:id/status
-const updatePaymentStatus = asyncHandler(async (req, res) => {
-    const { status } = req.body;
-    const valid = ['pending', 'success', 'failed', 'refunded'];
-    if (!valid.includes(status)) {
-        return res.status(400).json({ success: false, message: 'Status không hợp lệ' });
-    }
 
-    const payment = await Payment.findByIdAndUpdate(req.params.id, { status }, { new: true });
-    if (!payment) return res.status(404).json({ success: false, message: 'Không tìm thấy thanh toán' });
-
-    // Nếu hoàn tiền thì cập nhật order
-    if (status === 'refunded') {
-        await Order.findByIdAndUpdate(payment.orderId, { paymentStatus: 'refunded' });
-    }
-
-    res.json({ success: true, message: 'Cập nhật trạng thái thanh toán thành công', data: payment });
-});
-
-// GET /api/payments/summary  — thống kê doanh thu (admin)
-const getRevenueSummary = asyncHandler(async (req, res) => {
-    const { from, to } = req.query;
-    const matchStage = { status: 'success' };
-    if (from || to) {
-        matchStage.createdAt = {};
-        if (from) matchStage.createdAt.$gte = new Date(from);
-        if (to) matchStage.createdAt.$lte = new Date(to);
-    }
-
-    const result = await Payment.aggregate([
-        { $match: matchStage },
-        {
-            $group: {
-                _id: null,
-                totalRevenue: { $sum: '$amount' },
-                totalTransactions: { $count: {} },
-                avgTransaction: { $avg: '$amount' },
-            },
-        },
-    ]);
-
-    const byMethod = await Payment.aggregate([
-        { $match: matchStage },
-        { $group: { _id: '$method', total: { $sum: '$amount' }, count: { $count: {} } } },
-        { $sort: { total: -1 } },
-    ]);
-
-    res.json({
-        success: true,
-        data: {
-            summary: result[0] || { totalRevenue: 0, totalTransactions: 0, avgTransaction: 0 },
-            byMethod,
-        },
-    });
-});
 
 // GET /api/payments/daily-stats — thống kê doanh thu trong ngày hiện tại
 const getDailyStats = asyncHandler(async (req, res) => {
@@ -217,4 +155,4 @@ const getDailyStats = asyncHandler(async (req, res) => {
     });
 });
 
-module.exports = { getPayments, getPaymentById, createPayment, createPaymentByTable, updatePaymentStatus, getRevenueSummary, getDailyStats };
+module.exports = { getPayments, createPayment, createPaymentByTable, getDailyStats };

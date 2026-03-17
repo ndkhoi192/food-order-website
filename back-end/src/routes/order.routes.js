@@ -1,7 +1,6 @@
 const router = require('express').Router();
 const {
     getOrders,
-    getOrderById,
     getActiveOrderByTable,
     createOrder,
     updateOrderStatus,
@@ -14,7 +13,6 @@ const { authenticate, authorize } = require('../middlewares/auth.middleware');
 router.get('/table/:tableId/active', getActiveOrderByTable);
 
 router.get('/', authenticate, authorize('admin', 'staff'), getOrders);
-// router.get('/:id', authenticate, getOrderById);
 router.post('/', createOrder); // Public: khách tự đặt qua QR
 router.patch('/:id/status', authenticate, authorize('admin', 'staff'), updateOrderStatus);
 router.patch('/:id/items/:index/status', authenticate, authorize('admin', 'staff'), updateItemStatus);
