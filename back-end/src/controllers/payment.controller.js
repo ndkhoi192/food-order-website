@@ -6,7 +6,7 @@ const asyncHandler = require('../middlewares/asyncHandler');
 
 // GET /api/payments
 const getPayments = asyncHandler(async (req, res) => {
-    const { status, method, orderId, page = 1, limit = 20 } = req.query;
+    const { status, method, orderId, page = 1, limit = 1000 } = req.query;
     const filter = {};
     if (status) filter.status = status;
     if (method) filter.method = method;

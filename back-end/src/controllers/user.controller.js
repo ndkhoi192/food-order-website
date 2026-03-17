@@ -3,7 +3,7 @@ const asyncHandler = require('../middlewares/asyncHandler');
 
 // GET /api/users  (admin)
 const getUsers = asyncHandler(async (req, res) => {
-    const { role, status, page = 1, limit = 20 } = req.query;
+    const { role, status, page = 1, limit = 100 } = req.query;
     const filter = {};
     if (role) filter.role = role;
     if (status) filter.status = status;

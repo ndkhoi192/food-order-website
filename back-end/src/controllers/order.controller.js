@@ -12,7 +12,7 @@ const calcLineTotal = (basePriceSnapshot, optionsSnapshot, quantity) => {
 
 // GET /api/orders
 const getOrders = asyncHandler(async (req, res) => {
-    const { status, paymentStatus, tableId, page = 1, limit = 20 } = req.query;
+    const { status, paymentStatus, tableId, page = 1, limit = 1000 } = req.query;
     const filter = {};
     if (status) filter.status = status;
     if (paymentStatus) filter.paymentStatus = paymentStatus;
